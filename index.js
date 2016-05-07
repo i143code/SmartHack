@@ -24,6 +24,45 @@ app.get('/webhook/', function (req, res) {
     res.send('Error, wrong token')
 })
 
+
+app.post('/webhook/', function (req, res) {
+    messaging_events = req.body.entry[0].messaging
+    for (i = 0; i < messaging_events.length; i++) {
+        event = req.body.entry[0].messaging[i]
+        sender = event.sender.id
+        if (event.message && event.message.text) {
+            text = event.message.text
+            sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
+        }
+    }
+    res.sendStatus(200)
+})
+
+var token = "EAAYKfvzKtR0BAERyX25jkfYu9B7N3FZATXVi90bXeSfsUfflh5FCzr1p6pnzERujXw1V7S4jALISdU6Kqr3CwOxsnLWZCPujRwVVT11Mih0o8tnLDE2ZBLLGeZCfuWB8UtMbpcFDRZBXwPA2CgbbNZAtGA3qrD9eeaE8NMBtZAfhgZDZD"
+
+
+function sendTextMessage(sender, text) {
+    messageData = {
+        text:text
+    }
+    request({
+        url: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: {access_token:token},
+        method: 'POST',
+        json: {
+            recipient: {id:sender},
+            message: messageData,
+        }
+    }, function(error, response, body) {
+        if (error) {
+            console.log('Error sending messages: ', error)
+        } else if (response.body.error) {
+            console.log('Error: ', response.body.error)
+        }
+    })
+}
+
+
 // Spin up the server
 app.listen(app.get('port'), function() {
     console.log('running on port', app.get('port'))
